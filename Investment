@@ -1,0 +1,183 @@
+import React, { useState } from 'react';
+import {
+  CheckCircleIcon,
+  ClockIcon,
+  MinusCircleIcon,
+  PlusCircleIcon,
+  ArrowDownTrayIcon,
+  ArrowRightIcon,
+  ArrowUpIcon,
+  ArrowDownIcon,
+  SunIcon,
+  MoonIcon
+} from '@heroicons/react/24/solid';
+
+// Reusable Card component
+function Card({ children, className = '', theme }) {
+  return (
+    <div className={`p-4 rounded-lg shadow transition ${className} ${theme === 'dark' ? 'bg-slate-800 text-white' : 'bg-white text-slate-900'}`}>
+      {children}
+    </div>
+  );
+}
+
+// Status Badge
+const StatusBadge = ({ status }) => {
+  switch (status) {
+    case 'Confirmed':
+      return (
+        <span className="inline-flex items-center gap-1 bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-semibold">
+          <CheckCircleIcon className="w-4 h-4"/> {status}
+        </span>
+      );
+    case 'Pending':
+      return (
+        <span className="inline-flex items-center gap-1 bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-semibold">
+          <ClockIcon className="w-4 h-4"/> {status}
+        </span>
+      );
+    case 'Completed':
+      return (
+        <span className="inline-flex items-center gap-1 bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs font-semibold">
+          <MinusCircleIcon className="w-4 h-4"/> {status}
+        </span>
+      );
+    default:
+      return <span>{status}</span>;
+  }
+};
+
+// Change Badge (for amounts or portfolio growth)
+const ChangeBadge = ({ change }) => {
+  if (!change) return null;
+  const isPositive = change.startsWith('+');
+  return (
+    <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${isPositive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+      {isPositive ? <ArrowUpIcon className="w-3 h-3"/> : <ArrowDownIcon className="w-3 h-3"/>}
+      {change}
+    </span>
+  );
+};
+
+// Main Dashboard with Theme Toggle
+export function DashboardMock() {
+  const [theme, setTheme] = useState('dark'); // 'dark' or 'light'
+
+  const balances = [
+    { coin: 'BTC', amount: '0.1245', value: '$3,576', change: '+2.3%' },
+    { coin: 'ETH', amount: '1.842', value: '$2,696', change: '-1.2%' },
+    { coin: 'USDT', amount: '500', value: '$500', change: '+0.1%' }
+  ];
+
+  const quickActions = [
+    { label: 'Deposit', icon: PlusCircleIcon, colorDark: 'bg-indigo-600 text-white hover:bg-indigo-700', colorLight: 'bg-indigo-600 text-white hover:bg-indigo-700' },
+    { label: 'Withdraw', icon: ArrowDownTrayIcon, colorDark: 'bg-slate-700 border border-gray-400 text-white hover:bg-slate-600', colorLight: 'bg-white border border-gray-300 text-slate-900 hover:bg-slate-100' },
+    { label: 'Transfer', icon: ArrowRightIcon, colorDark: 'bg-slate-700 border border-gray-400 text-white hover:bg-slate-600', colorLight: 'bg-white border border-gray-300 text-slate-900 hover:bg-slate-100' }
+  ];
+
+  const portfolioChange = '+3.4%';
+
+  return (
+    <div className={`${theme === 'dark' ? 'bg-slate-900 text-white' : 'bg-slate-50 text-slate-900'} min-h-screen p-6 transition-colors duration-300`}>
+      <div className="max-w-6xl mx-auto">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold">Investor Dashboard</h1>
+          <button
+            className="p-2 rounded-full border hover:bg-gray-200 transition"
+            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+          >
+            {theme === 'dark' ? <SunIcon className="w-6 h-6 text-yellow-500"/> : <MoonIcon className="w-6 h-6 text-gray-800"/>}
+          </button>
+        </div>
+
+        {/* Balance Cards */}
+        <div className="grid md:grid-cols-3 gap-6">
+          {balances.map(b => (
+            <Card key={b.coin} theme={theme} className="hover:scale-105 transform transition">
+              <div className="flex justify-between items-center">
+                <div className="font-semibold">{b.coin}</div>
+                <ChangeBadge change={b.change} />
+              </div>
+              <div className="text-xl mt-2">{b.amount}</div>
+              <div className="text-sm opacity-80">{b.value}</div>
+            </Card>
+          ))}
+        </div>
+
+        {/* Portfolio & Quick Actions */}
+        <div className="mt-8 grid md:grid-cols-2 gap-6">
+          <Card theme={theme} className="hover:scale-105 transform transition">
+            <h3 className="font-semibold flex justify-between items-center">
+              Portfolio Value
+              <ChangeBadge change={portfolioChange} />
+            </h3>
+            <div className="text-3xl mt-2">$6,772</div>
+          </Card>
+
+          <Card theme={theme} className="hover:scale-105 transform transition">
+            <h3 className="font-semibold">Quick Actions</h3>
+            <div className="mt-3 flex gap-2">
+              {quickActions.map(action => (
+                <button
+                  key={action.label}
+                  className={`px-3 py-2 rounded inline-flex items-center gap-1 transition ${theme === 'dark' ? action.colorDark : action.colorLight}`}
+                >
+                  <action.icon className="w-4 h-4"/>
+                  {action.label}
+                </button>
+              ))}
+            </div>
+          </Card>
+        </div>
+
+        {/* Transaction History */}
+        <div className="mt-8">
+          <TransactionHistory theme={theme} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Transaction History Component
+export function TransactionHistory({ theme }) {
+  const rows = [
+    { id: 'TX1001', type: 'Deposit', coin: 'BTC', amount: '0.05', change: '+1.5%', status: 'Confirmed', date: '2025-11-28' },
+    { id: 'TX1002', type: 'Deposit', coin: 'USDT', amount: '200', change: '+0.1%', status: 'Pending', date: '2025-12-01' },
+    { id: 'TX1003', type: 'Withdrawal', coin: 'ETH', amount: '0.3', change: '-0.7%', status: 'Completed', date: '2025-12-03' }
+  ];
+
+  return (
+    <Card theme={theme}>
+      <h3 className="font-semibold mb-3">Transaction History</h3>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead className={`text-left ${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>
+            <tr>
+              <th className="pb-2">ID</th>
+              <th className="pb-2">Type</th>
+              <th className="pb-2">Coin</th>
+              <th className="pb-2">Amount</th>
+              <th className="pb-2">Status</th>
+              <th className="pb-2">Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map(r => (
+              <tr key={r.id} className={`border-t transition hover:${theme === 'dark' ? 'bg-slate-700' : 'bg-slate-100'}`}>
+                <td className="py-2">{r.id}</td>
+                <td>{r.type}</td>
+                <td>{r.coin}</td>
+                <td className="flex items-center gap-2">
+                  {r.amount} <ChangeBadge change={r.change} />
+                </td>
+                <td><StatusBadge status={r.status} /></td>
+                <td>{r.date}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </Card>
+  );
+}
